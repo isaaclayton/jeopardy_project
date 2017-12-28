@@ -9,6 +9,8 @@ from collections import defaultdict
 import pickle
 from preprocessing import flatten
 import time
+import os
+import sys
 
 with open('preprocessing.pkl', 'rb') as savefile:
     prep_vars = pickle.load(savefile)
@@ -33,7 +35,7 @@ def get_contestant_info(url = None, soup = None):
                 
     contestant_name_re = re.compile('([^,]+),')
     contestant_job_re = re.compile(', (?:a|an|the) (.*?) (?:originally|from)')
-    contestant_location_re = re.compile('from (.+, [^\(]+)')
+    contestant_location_re = re.compile('from ([^\(]+)')
     
     contestant_list = soup.find_all('p', class_='contestants')
     
@@ -124,7 +126,8 @@ def get_question_info(url):
                   for i, clue in enumerate(clue_chunks)
                   if not is_fj[i]]
     
-    clue_values = [int(value.split('$')[1].replace(',', '')) for value in value_tags]
+    #clue_values = [int(value.split('$')[1].replace(',', '')) for value in value_tags]
+    clue_values = [int(re.compile('[^\d,](?=\d)').split(value)[-1].replace(',', '')) for value in value_tags]
     
     fj_index = [i for i,_ in enumerate(clue_chunks) if is_fj[i]]
     
@@ -134,8 +137,8 @@ def get_question_info(url):
     
     if len(fj_index)>0:
         
-        fj_values = [[int(value[1:].replace(',', ''))] + [0]*(len(fj_index)-1)
-                     for value in div_tag_soup[fj_index[0]].find_all(string=re.compile('^\$'))]
+        fj_values = [[int(value.replace(',', '').replace('$', '').split('.')[0])] + [0]*(len(fj_index)-1)
+                     for value in div_tag_soup[fj_index[0]].find_all(string=re.compile('^[\$\d][\d,]+$'))]
         
         fj_contestants = [contestant.text 
                           for contestant in div_tag_soup[fj_index[0]].find_all('td', class_=re.compile('wrong|right'))]
@@ -205,7 +208,16 @@ def sectioner(num, sections):
         _list.append(num)
     return [round(x) for x in _list]
 
+def if_else(cond, if_, else_):
+    if cond:
+        return if_
+    else:
+        return else_
+
 def get_all_info(func, urls, error_list, load_inc = 100):
+    if len(urls) == 0:
+        yield
+    load_inc = if_else(len(urls)>=load_inc, load_inc, len(urls))
     increments = sectioner(len(urls), load_inc)
     i = 0
     for url in urls:
@@ -218,40 +230,82 @@ def get_all_info(func, urls, error_list, load_inc = 100):
             print('Cannot retrieve episode {} \n'.format(url))
             error_list.append(url)
         i+=1
-            
-try:
-    with open('error_lists.pkl', 'rb') as error_lists:
-        q_urls = pickle.load(error_lists)
-        c_urls = pickle.load(error_lists)
-except:
-    q_urls, c_urls = flattened_ep_urls.copy(), flattened_ep_urls.copy()
-    
-question_errors = []
-contestant_errors = []
 
-all_questions = get_all_info(get_question_info, q_urls, question_errors)
-all_contestants = get_all_info(get_contestant_info, c_urls, contestant_errors)
+def a_or_w(filename):
+    if os.path.exists(filename):
+        return 'a' # append if already exists
+    else:
+        return 'w' # make a new file if not
 
 if __name__== "__main__":
     
+    which_extract = 'both'
+    which_ep_list = 'default'
+    if len(sys.argv) > 1:
+        which_extract = sys.argv[1]
+    if len(sys.argv) > 2:
+        which_ep_list = sys.argv[2]
+        
+    q_urls, c_urls = flattened_ep_urls.copy(), flattened_ep_urls.copy()
+    
+    if which_ep_list.lower() == 'default':  
+        
+        try:
+            with open('error_lists.pkl', 'rb') as error_lists:
+                q_urls = pickle.load(error_lists)
+                c_urls = pickle.load(error_lists)
+        except:
+            pass
+                
+    question_errors = []
+    contestant_errors = []
+
+    all_questions = get_all_info(get_question_info, q_urls, question_errors)
+    all_contestants = get_all_info(get_contestant_info, c_urls, contestant_errors)
+    
     #--Extract question information--
     
-    with open('jeopardy_questions.txt', 'w') as f:
-    
-        for episode in all_questions:
-            if len(episode) > 0:
-                for question in episode:
-                    f.write('||'.join(map(str, question.values())))
-                    f.write("\n")
+    if (which_extract.lower() == 'both') or (which_extract.lower() == 'questions'):
+        
+        with open('jeopardy_questions.txt', a_or_w('jeopardy_questions.txt')) as f:
+            
+            for episode in all_questions:
+                if episode is None:
+                    break
+                if len(episode) > 0:
+                    for question in episode:
+                        f.write('||'.join(map(str, question.values())))
+                        f.write("\n")
+                        
+    else:
+        
+        try:
+            with open('error_lists.pkl', 'rb') as error_lists:
+                question_errors = pickle.load(error_lists)
+        except:
+            pass
     
     #--Extract contestant information--
     
-    with open('contestants.txt', 'w') as f:
+    if (which_extract.lower() == 'both') or (which_extract.lower() == 'contestants'):
+    
+        with open('contestants.txt', a_or_w('contestants.txt')) as f:
         
-        for episode in all_contestants:
-            if len(episode) > 0:
-                    f.write('||'.join(map(str, episode)))
-                    f.write("\n")
+            for episode in all_contestants:
+                if episode is None:
+                    break
+                if len(episode) > 0:
+                        f.write('||'.join(map(str, episode)))
+                        f.write("\n")
+                        
+    else:
+        
+        try:
+            with open('error_lists.pkl', 'rb') as error_lists:
+                pickle.load(error_lists)
+                contestant_errors = pickle.load(error_lists)
+        except:
+            pass
                     
     with open('error_lists.pkl', 'wb') as error_lists:
         pickle.dump(question_errors, error_lists)
