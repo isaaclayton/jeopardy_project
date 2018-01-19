@@ -11,6 +11,7 @@ from preprocessing import flatten
 import time
 import os
 import sys
+from typing import List, Dict, Any
 
 with open('preprocessing.pkl', 'rb') as savefile:
     prep_vars = pickle.load(savefile)
@@ -69,9 +70,9 @@ def get_clue_order(order_list):
         total += len(_round)
     return clue_order
 
-def get_question_info(url):
+def get_question_info(url: str) -> List[Dict[str, Any]]:
     
-    #--Pre-processing--
+    """Take in an episode and return a list of each question and its relevant information"""
     
     soup = BeautifulSoup(requests.get(url).text, 'html.parser')
     
@@ -106,8 +107,6 @@ def get_question_info(url):
     div_tag_soup = [BeautifulSoup(clue[0]['onmouseover'], 'html.parser') 
                    for clue in clue_chunks]
     
-    #--Question attributes--
-    
     clue_rounds = [clue[0].find_parent('div')['id'] for clue in clue_chunks]
     
     is_fj = [_round=='final_jeopardy_round' for _round in clue_rounds]
@@ -115,7 +114,8 @@ def get_question_info(url):
     contestants = itertools.chain.from_iterable([div.find_all('td', class_=re.compile('wrong|right')) 
                                                         for div in div_tag_soup])
     
-    contestants = list(set([answerer.text for answerer in contestants if 'Triple Stumper' not in answerer.text]))
+    contestants = list(set([answerer.text for answerer in contestants 
+                            if ('Triple Stumper' not in answerer.text) & ('Quadruple Stumper' not in answerer.text)]))
     
     #A dictionary describing who answered each question and if they were right or wrong
     answerer_dicts =     [defaultdict(lambda: 'neither', [[contestant.text, contestant['class'][0]] 
@@ -169,6 +169,10 @@ def get_question_info(url):
         score_keys.append('contestant_{}'.format(i+1))
         score_keys.append('c{}_score_update'.format(i+1))
         
+    difficulty = [int(clue[0].find('td', class_='clue_unstuck')['id'].split('_')[-2])
+                       if clue[0].find('td', class_='clue_unstuck') is not None else 0 
+                       for clue in clue_chunks]
+        
     clue_columns = [int(clue[0].find('td', class_='clue_unstuck')['id'].split('_')[-3]) - 1
                        if clue[0].find('td', class_='clue_unstuck') is not None else 0 
                        for clue in clue_chunks]
@@ -187,7 +191,8 @@ def get_question_info(url):
                      'ep_id': ep_id, 
                      'question_id': i+1, 
                      'round': clue_rounds[i], 
-                     'category': clue_cats[i], 
+                     'category': clue_cats[i],
+                     'difficulty': difficulty[i],
                      'question': questions[i], 
                      'answer': answers[i], 
                      'DD': daily_double[i]},
