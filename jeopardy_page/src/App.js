@@ -217,6 +217,8 @@ class App extends Component {
                     </div>
                     <h2>Conclusion</h2>
                     <p> &emsp; Extracting and visualizing Jeopardy has taught me a lot about my favorite gameshow. I never want to stop working on it; I keep wanting to find out more and more interesting insights. Some insights that I plan on adding later on if I have the chance include using natural language processing to cluster categories into broader categories like "History", "Pop Culture", "Science", etc., finding insights into contestant occupation and Jeopardy success, and investigating whether "True Daily Double"s hurt or help a contestant's game. I hope that this analysis has also given you some interesting trivia on a trivia game show. I plan on providing more analyses like this as I continue to grow in my data science abilities. Thanks for reading!</p>
+                    
+                    <p> This can be found on my GitHub <a href='https://github.com/isaaclayton/jeopardy_project'>here</a>.</p>
                 </div> 
             </div>
     );
