@@ -1,0 +1,134 @@
+#wrapper {
+    position:absolute;
+    height:100%;
+    width:100%;
+}
+#header_wrapper {
+  top:0px;
+  left:0px;
+}
+#App-header {
+  position: fixed;
+  text-align: center;
+  width: 100vw;
+  height: 100vh;
+  background-color: #060CE9;
+  /*font-family: 'Gyparody';*/
+  z-index:-99;
+  color: white;
+}
+
+#App-header h1{
+    top: 20vh;
+    position: relative;
+    font-size: 10vmin;
+    margin:10vh 10vw;
+    padding-bottom: 20vh;
+}
+
+#App-header h2{
+    padding-top: 10vh;
+    position: relative;
+    font-size: 3.5em;
+    margin:10vh 10vw;
+    font-stretch: ultra-expanded;
+}
+
+.App-title {
+  font-size: 1.5em;
+}
+
+.App-intro {
+  font-size: large;
+}
+
+.title {
+    text-align: center;
+}
+
+.jeopardy-word {
+    font-family: 'Gyparody';
+    font-size:15vmin;
+    letter-spacing: 0.0725em;
+    color: gray; 
+    margin-bottom: 5vh;
+    margin-top: 10vh;
+}
+
+#jeopardy-intro {
+    position: fixed;
+    width: 100vw;
+    height: 100vh;
+    margin: 0 auto;
+    background-image: url('./jeopardy_intro.gif');
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    z-index:-98;
+}
+
+#bodyWrapper {
+    background-color: white;
+    margin-top: 100vh;
+    padding-top: 10vh;
+    padding-left: 20vw;
+    padding-right: 20vw;
+    padding-bottom: 25vh;
+    line-height: 200%;
+    font-size:2.5vh;
+    font-family: 'PT Sans', serif;
+}
+
+.graphics h3 {
+    text-align: center;
+}
+
+@font-face {
+  font-family: 'Gyparody';
+  src: url('./font_files/gyparody-webfont.woff') format('woff'), /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+   url('./font_files/gyparody-webfont.ttf') format('truetype'); /* Chrome 4+, Firefox 3.5, Opera 10+, Safari 3—5 */
+}  
+
+@font-face {
+    font-family: 'Mavericks';
+    src: url('./font_files/NBAMAVER.woff') format('woff'), /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
+    url('./font_files/NBAMAVER.TTF') format('truetype'); /* Chrome 4+, Firefox 3.5, Opera 10+, Safari 3—5 */
+}
+
+div.tooltip {
+            position: absolute;
+            text-align: center;
+            width: 150px;
+            height: 40px;
+            padding: 2px;
+            font: 12px;
+            background: lightsteelblue;
+            border: 0px;
+            pointer-events: none;
+        }
+
+.answer { 
+    display: none;
+}
+
+span:hover .answer {
+    display: inline-block;
+}
+
+@media screen and (max-width: 800px) {
+    
+    #bodyWrapper {
+        padding-left: 4vw;
+        padding-right: 4vw;
+        margin-left: 0px;
+        margin-right: 0px;
+    }
+    .graphics {
+        width: 80%;
+        margin: 0 10%;
+    }
+    #map {
+        margin-top: -80%;
+        margin-bottom: -80%;
+    }
+}
